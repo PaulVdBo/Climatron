@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Climatron4</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #111; color: #fff; padding: 10px; }
+
+    #loginScherm { max-width: 320px; margin: 60px auto; background: #1a1a1a; border-radius: 12px; padding: 24px; border: 1px solid #333; }
+    #loginScherm h2 { color: #0f0; text-align: center; margin-bottom: 20px; font-size: 20px; }
+    #loginScherm input { width: 100%; padding: 10px; margin-bottom: 12px; background: #222; border: 1px solid #444; border-radius: 6px; color: #fff; font-size: 14px; }
+    #loginScherm button { width: 100%; padding: 10px; background: #0f0; color: #000; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; }
+    #loginFout { color: #f44; font-size: 12px; margin-top: 8px; text-align: center; min-height: 18px; }
+
+    #hoofdScherm { display: none; }
+    h2 { color: #0f0; font-size: 19px; margin-bottom: 8px; text-align: center; }
+
+    #uitlogBar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    #uitlogBar span { font-size: 11px; color: #666; }
+    #uitlogKnop { font-size: 11px; color: #f44; background: none; border: 1px solid #f44; border-radius: 4px; padding: 2px 8px; cursor: pointer; }
+
+    .grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 4px; margin-bottom: 10px; }
+    .actuator { background: #222; border-radius: 8px; padding: 4px 2px; text-align: center; border: 2px solid #333; transition: all 0.3s; }
+    .actuator.aan { border-color: #0f0; background: #1a3a1a; }
+    .icoon { font-size: 20px; margin-bottom: 2px; }
+    .naam { font-size: 9px; color: #aaa; }
+    .actuator.aan .naam { color: #0f0; font-weight: bold; }
+
+    .sensoren { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 10px; }
+    .sensor { background: #1a1a2e; border-radius: 8px; padding: 8px 4px; text-align: center; border: 1px solid #333; }
+    .sensor .waarde { font-size: 20px; font-weight: bold; color: #0ff; }
+    .sensor .eenheid { font-size: 10px; color: #0ff; }
+    .sensor .slabel { font-size: 10px; color: #888; margin-top: 3px; }
+    .sensor.fout .waarde { color: #f00; }
+
+    .voortgang { background: #1a1a1a; border-radius: 8px; padding: 8px; margin-bottom: 10px; border: 1px solid #333; }
+    .vt { font-size: 11px; color: #fa0; margin-bottom: 5px; }
+    #balkContainer { position: relative; height: 20px; width: 100%; background: #333; border-radius: 4px; }
+    #balkGroei { position: absolute; left: 0; top: 0; height: 20px; background: #0f0; border-radius: 4px 0 0 4px; width: 0%; }
+    #balkBloei { position: absolute; top: 0; height: 20px; background: #ff0; border-radius: 0 4px 4px 0; width: 0%; left: 0%; }
+    #balkVandaag { position: absolute; top: -4px; width: 3px; height: 28px; background: #fff; border-radius: 2px; left: 0%; }
+    .balk-labels { position: relative; height: 30px; margin-top: 4px; }
+    #labelGroei { position: absolute; left: 0; font-size: 10px; color: #0f0; text-align: left; }
+    #labelBloei { position: absolute; font-size: 10px; color: #ff0; text-align: center; transform: translateX(-50%); }
+    #labelOogst { position: absolute; right: 0; font-size: 10px; color: #fa0; text-align: right; }
+
+    #klok { text-align: center; margin-top: 8px; font-size: 20px; font-weight: bold; color: #fff; }
+    #status { font-size: 13px; color: #fa0; margin-top: 8px; text-align: center; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div id="loginScherm">
+  <h2>🌿 CLIMATRON4 🌿</h2>
+  <input type="email" id="email" placeholder="Email" autocomplete="username">
+  <input type="password" id="wachtwoord" placeholder="Wachtwoord" autocomplete="current-password">
+  <button onclick="login()">Aanmelden</button>
+  <div id="loginFout"></div>
+</div>
+
+<div id="hoofdScherm">
+  <div id="uitlogBar">
+    <span id="gebruikerLabel"></span>
+    <button id="uitlogKnop" onclick="uitloggen()">Uitloggen</button>
+  </div>
+
+  <h2>🌿 CLIMATRON4 🌿</h2>
+
+  <div class="grid">
+    <div class="actuator" id="licht">      <div class="icoon">💡</div><div class="naam">Licht</div></div>
+    <div class="actuator" id="verwarming"> <div class="icoon">🔥</div><div class="naam">Warm</div></div>
+    <div class="actuator" id="ventilator"> <div class="icoon">💨</div><div class="naam">Fan</div></div>
+    <div class="actuator" id="koeling">    <div class="icoon">❄️</div><div class="naam">Koel</div></div>
+    <div class="actuator" id="bevochtiger"><div class="icoon">💧</div><div class="naam">Vocht</div></div>
+    <div class="actuator" id="grondact">   <div class="icoon">🌱</div><div class="naam">Grond</div></div>
+  </div>
+
+  <div class="sensoren">
+    <div class="sensor" id="sTemp"><div class="waarde" id="vTemp">--</div><div class="eenheid">°C</div><div class="slabel">Lucht temp</div></div>
+    <div class="sensor" id="sHum"> <div class="waarde" id="vHum">--</div> <div class="eenheid">%</div> <div class="slabel">Luchtvocht</div></div>
+    <div class="sensor" id="sSoil"><div class="waarde" id="vSoil">--</div><div class="eenheid">%</div> <div class="slabel">Grondvocht</div></div>
+  </div>
+
+  <div class="voortgang">
+    <div class="vt" id="vPeriode">--</div>
+    <div id="balkContainer">
+      <div id="balkGroei"></div>
+      <div id="balkBloei"></div>
+      <div id="balkVandaag"></div>
+    </div>
+    <div class="balk-labels">
+      <div id="labelGroei">--</div>
+      <div id="labelBloei">--</div>
+      <div id="labelOogst">--</div>
+    </div>
+  </div>
+
+  <div id="klok">--</div>
+  <div id="status">Verbinden...</div>
+</div>
+
+<script>
+var SUPABASE_URL = 'https://erocbubyvpxnvkpjnlbd.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_FpL7L7W0hdw4QMkKRF4E4A_OlzE30sb';
+var accessToken = null;
+var updateTimer = null;
+
+function pad(n) { return String(n).padStart(2,'0'); }
+
+function login() {
+  var email = document.getElementById('email').value.trim();
+  var pass  = document.getElementById('wachtwoord').value;
+  document.getElementById('loginFout').innerText = '';
+
+  fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+    body: JSON.stringify({ email: email, password: pass })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d.access_token) throw new Error(d.error_description || 'Login mislukt');
+    accessToken = d.access_token;
+    document.getElementById('loginScherm').style.display  = 'none';
+    document.getElementById('hoofdScherm').style.display  = 'block';
+    document.getElementById('gebruikerLabel').innerText   = email;
+    haalDataOp();
+    updateTimer = setInterval(haalDataOp, 30000);
+    setInterval(klokTick, 1000);
+  })
+  .catch(function(e) {
+    document.getElementById('loginFout').innerText = e.message;
+  });
+}
+
+function uitloggen() {
+  accessToken = null;
+  clearInterval(updateTimer);
+  document.getElementById('hoofdScherm').style.display = 'none';
+  document.getElementById('loginScherm').style.display = 'block';
+  document.getElementById('wachtwoord').value = '';
+}
+
+function haalDataOp() {
+  fetch(SUPABASE_URL + '/rest/v1/climatrons?select=*&limit=1', {
+    headers: {
+      'apikey':        SUPABASE_KEY,
+      'Authorization': 'Bearer ' + accessToken
+    }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(rows) {
+    if (!rows || !rows.length) { console.log('Geen data'); return; }
+    toonData(rows[0]);
+  })
+  .catch(function(e) { console.log('Fetch fout:', e.message); });
+}
+
+function toonData(d) {
+  // Actuatoren
+  var act = d.actuators || 0;
+  document.getElementById('licht').classList.toggle      ('aan', !!(act & 1));
+  document.getElementById('verwarming').classList.toggle ('aan', !!(act & 2));
+  document.getElementById('ventilator').classList.toggle ('aan', !!(act & 4));
+  document.getElementById('koeling').classList.toggle    ('aan', !!(act & 8));
+  document.getElementById('bevochtiger').classList.toggle('aan', !!(act & 16));
+  document.getElementById('grondact').classList.toggle   ('aan', !!(act & 32));
+
+  // Sensoren
+  document.getElementById('vTemp').innerText  = d.temp     != null ? parseFloat(d.temp).toFixed(1)     : '--';
+  document.getElementById('vHum').innerText   = d.humidity != null ? parseFloat(d.humidity).toFixed(1)  : '--';
+  document.getElementById('vSoil').innerText  = d.soil     != null ? parseFloat(d.soil).toFixed(1)      : '--';
+
+  // Periode
+  document.getElementById('vPeriode').innerText = d.periode || '--';
+
+  // Voortgangsbalk
+  var dGroei = parseInt(d.dagen_groei) || 0;
+  var dBloei = parseInt(d.dagen_bloei) || 0;
+  var totaal = dGroei + dBloei;
+
+  if (totaal > 0 && d.start_groei) {
+    var pGroei = (dGroei / totaal * 100).toFixed(1);
+    var pBloei = (dBloei / totaal * 100).toFixed(1);
+
+    document.getElementById('balkGroei').style.width = pGroei + '%';
+    document.getElementById('balkBloei').style.left  = pGroei + '%';
+    document.getElementById('balkBloei').style.width = pBloei + '%';
+
+    // Vandaag lijntje
+    var delen = d.start_groei.split('/');
+    var jaar = parseInt(delen[2]) < 100 ? 2000 + parseInt(delen[2]) : parseInt(delen[2]);
+    var startDt = new Date(jaar, parseInt(delen[1]) - 1, parseInt(delen[0]));
+    var vandaag = new Date();
+    var dagenVerstreken = Math.floor((vandaag - startDt) / 86400000);
+    var pVandaag = Math.min(Math.max(dagenVerstreken / totaal * 100, 0), 100);
+    document.getElementById('balkVandaag').style.left = pVandaag.toFixed(1) + '%';
+
+    // Labels
+    document.getElementById('labelGroei').innerHTML = (d.start_groei || '--') + '<br>GROEI start';
+    document.getElementById('labelBloei').style.left = pGroei + '%';
+    document.getElementById('labelBloei').innerHTML = (d.start_bloei || '--') + '<br>BLOEI start';
+    document.getElementById('labelOogst').innerHTML = (d.oogst_datum || '--') + '<br>OOGST';
+  }
+
+  // Laatste update
+  if (d.updated_at) {
+    var dt = new Date(d.updated_at);
+    document.getElementById('status').innerText =
+      'Laatste update ESP32: ' + pad(dt.getDate()) + '/' + pad(dt.getMonth()+1) +
+      '  ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()) + ':' + pad(dt.getSeconds());
+  }
+}
+
+function klokTick() {
+  var nu = new Date();
+  document.getElementById('klok').innerText =
+    pad(nu.getDate()) + '/' + pad(nu.getMonth()+1) + '/' + nu.getFullYear() +
+    '  ' + pad(nu.getHours()) + ':' + pad(nu.getMinutes()) + ':' + pad(nu.getSeconds());
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('loginScherm').style.display !== 'none') login();
+});
+</script>
+</body>
+</html>
