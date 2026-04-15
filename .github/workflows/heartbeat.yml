@@ -1,0 +1,18 @@
+name: Supabase Heartbeat
+
+on:
+  schedule:
+    - cron: '0 12 */5 * *'  # Elke 5 dagen om 12:00 UTC
+  workflow_dispatch:          # Ook manueel uitvoerbaar
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          curl -X GET \
+            'https://erocbubyvpxnvkpjnlbd.supabase.co/rest/v1/climatrons?select=id&limit=1' \
+            -H 'apikey: sb_publishable_FpL7L7W0hdw4QMkKRF4E4A_OlzE30sb' \
+            -H 'Authorization: Bearer sb_publishable_FpL7L7W0hdw4QMkKRF4E4A_OlzE30sb'
+          echo "Heartbeat verzonden naar Supabase"
