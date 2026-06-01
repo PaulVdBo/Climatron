@@ -2,22 +2,18 @@ name: Supabase Heartbeat
 
 on:
   schedule:
-    - cron: '0 12 */5 * *'  # Elke 5 dagen om 12:00 UTC
-  workflow_dispatch:          # Ook manueel uitvoerbaar
+    - cron: '0 12 */5 * *'
+  workflow_dispatch:
 
 jobs:
   heartbeat:
     runs-on: ubuntu-latest
     steps:
-      - name: Test DNS
+      - name: Test netwerk
         run: |
+          echo "=== DNS test ==="
+          nslookup supabase.com || true
           nslookup erocbubyvpxnvkpjnlbd.supabase.co || true
+          echo "=== Ping supabase.com ==="
           curl -I https://supabase.com || true
-      - name: Ping Supabase
-        run: |
-          curl --fail -X GET \
-            'https://erocbubyvpxnvkpjnlbd.supabase.co/rest/v1/climatrons?select=id&limit=1' \
-            -H 'apikey: sb_publishable_FpL7L7W0hdw4QMkKRF4E4A_OlzE30sb' \
-            -H 'Authorization: Bearer sb_publishable_FpL7L7W0hdw4QMkKRF4E4A_OlzE30sb' \
-            -v
-          echo "Heartbeat verzonden naar Supabase"
+          echo "=== Klaar ==="
