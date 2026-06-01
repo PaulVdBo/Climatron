@@ -11,8 +11,9 @@ jobs:
     steps:
       - name: Ping Supabase
         run: |
-          curl -X GET \
+          curl --fail -X GET \
             'https://erocbubyvpxnvkpjnlbd.supabase.co/rest/v1/climatrons?select=id&limit=1' \
             -H 'apikey: sb_publishable_FpL7L7W0hdw4QMkKRF4E4A_OlzE30sb' \
-            -H 'Authorization: Bearer sb_publishable_FpL7L7W0hdw4QMkKRF4E4A_OlzE30sb'
+            -H 'Authorization: Bearer sb_publishable_FpL7L7W0hdw4QMkKRF4E4A_OlzE30sb' \
+            -v
           echo "Heartbeat verzonden naar Supabase"
