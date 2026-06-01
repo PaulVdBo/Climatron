@@ -9,6 +9,10 @@ jobs:
   heartbeat:
     runs-on: ubuntu-latest
     steps:
+      - name: Test DNS
+        run: |
+          nslookup erocbubyvpxnvkpjnlbd.supabase.co || true
+          curl -I https://supabase.com || true
       - name: Ping Supabase
         run: |
           curl --fail -X GET \
